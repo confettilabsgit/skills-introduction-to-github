@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Health Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .drawer-enter {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .drawer-active {
+            transform: translateX(0);
+            opacity: 1;
+            transition: all 0.3s ease-out;
+        }
+
+        .toast-show {
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .metric-card {
+            transition: all 0.2s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        .structure-item {
+            transition: all 0.2s ease;
+        }
+
+        .structure-item.expanded .chevron {
+            transform: rotate(90deg);
+        }
+
+        .chevron {
+            transition: transform 0.2s ease;
+        }
+
+        .tooltip {
+            visibility: hidden;
+            position: absolute;
+            z-index: 50;
+            background: #1e293b;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            width: 220px;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #1e293b;
+        }
+
+        .has-tooltip:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold text-slate-900">Content Health</h1>
+                <p class="text-sm text-slate-500 mt-0.5">Monitor and improve your content quality</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <select class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option>Last 30 days</option>
+                    <option>Last 7 days</option>
+                    <option>Last 90 days</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+
+        <!-- Score Cards -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+
+            <div class="metric-card bg-white p-5 rounded-xl border border-slate-200 relative has-tooltip cursor-help">
+                <div class="flex items-start justify-between mb-3">
+                    <span class="text-sm text-slate-600">Clarity Score</span>
+                    <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="text-3xl font-semibold text-slate-900 mb-1">87</div>
+                <div class="text-xs text-green-600">+3 from last period</div>
+                <div class="tooltip">
+                    Measures how easy your content is to understand. Based on reading level, sentence length, and jargon usage.
+                </div>
+            </div>
+
+            <div class="metric-card bg-white p-5 rounded-xl border border-slate-200 relative has-tooltip cursor-help">
+                <div class="flex items-start justify-between mb-3">
+                    <span class="text-sm text-slate-600">Consistency Score</span>
+                    <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="text-3xl font-semibold text-slate-900 mb-1">72</div>
+                <div class="text-xs text-amber-600">-2 from last period</div>
+                <div class="tooltip">
+                    Tracks terminology, voice, and formatting consistency across all content. Flags conflicting terms and style variations.
+                </div>
+            </div>
+
+            <div class="metric-card bg-white p-5 rounded-xl border border-slate-200 relative has-tooltip cursor-help">
+                <div class="flex items-start justify-between mb-3">
+                    <span class="text-sm text-slate-600">Coverage Score</span>
+                    <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M12 13a1 1 0 100 2h5a1 1 0 001-1V9a1 1 0 10-2 0v2.586l-4.293-4.293a1 1 0 00-1.414 0L8 9.586 3.707 5.293a1 1 0 00-1.414 1.414l5 5a1 1 0 001.414 0L11 9.414 14.586 13H12z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="text-3xl font-semibold text-slate-900 mb-1">64</div>
+                <div class="text-xs text-red-600">-7 from last period</div>
+                <div class="tooltip">
+                    Identifies gaps in your content library. Checks if key user journeys, features, and use cases are documented.
+                </div>
+            </div>
+
+            <div class="metric-card bg-white p-5 rounded-xl border border-slate-200 relative has-tooltip cursor-help">
+                <div class="flex items-start justify-between mb-3">
+                    <span class="text-sm text-slate-600">Freshness Score</span>
+                    <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="text-3xl font-semibold text-slate-900 mb-1">81</div>
+                <div class="text-xs text-green-600">+5 from last period</div>
+                <div class="tooltip">
+                    Evaluates how current your content is. Flags outdated screenshots, deprecated features, and stale information.
+                </div>
+            </div>
+
+            <div class="metric-card bg-white p-5 rounded-xl border border-slate-200 relative has-tooltip cursor-help">
+                <div class="flex items-start justify-between mb-3">
+                    <span class="text-sm text-slate-600">Structured Data Score</span>
+                    <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="text-3xl font-semibold text-slate-900 mb-1">69</div>
+                <div class="text-xs text-slate-500">No change</div>
+                <div class="tooltip">
+                    Measures metadata quality, taxonomy completeness, and content model health. Critical for search and AI tools.
+                </div>
+            </div>
+
+            <div class="metric-card bg-white p-5 rounded-xl border border-slate-200 relative has-tooltip cursor-help">
+                <div class="flex items-start justify-between mb-3">
+                    <span class="text-sm text-slate-600">Agent Readiness Score</span>
+                    <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="text-3xl font-semibold text-slate-900 mb-1">78</div>
+                <div class="text-xs text-green-600">+8 from last period</div>
+                <div class="tooltip">
+                    Checks if your content is optimized for AI agents and assistants. Looks at structure, FAQs, and machine-readable formats.
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Critical Issues -->
+        <section class="bg-white rounded-xl border border-slate-200 p-6 mb-8">
+            <h2 class="text-lg font-semibold text-slate-900 mb-4">Critical Issues</h2>
+            <div class="space-y-3" id="issuesList">
+                <!-- Issues will be rendered here by JavaScript -->
+            </div>
+        </section>
+
+        <!-- What's Working / Not Working -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+            <div class="bg-white rounded-xl border border-slate-200 p-6">
+                <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    What's Working
+                </h2>
+                <div class="space-y-3">
+                    <div class="flex items-start gap-3 pb-3 border-b border-slate-100">
+                        <div class="w-1.5 h-1.5 rounded-full bg-green-500 mt-2"></div>
+                        <div class="flex-1">
+                            <div class="text-sm text-slate-900 mb-1">Getting started guides</div>
+                            <div class="text-xs text-slate-500">Clear step-by-step instructions with helpful screenshots</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 pb-3 border-b border-slate-100">
+                        <div class="w-1.5 h-1.5 rounded-full bg-green-500 mt-2"></div>
+                        <div class="flex-1">
+                            <div class="text-sm text-slate-900 mb-1">API reference docs</div>
+                            <div class="text-xs text-slate-500">Complete coverage with working code examples</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 pb-3 border-b border-slate-100">
+                        <div class="w-1.5 h-1.5 rounded-full bg-green-500 mt-2"></div>
+                        <div class="flex-1">
+                            <div class="text-sm text-slate-900 mb-1">Release notes</div>
+                            <div class="text-xs text-slate-500">Regular updates with plain language summaries</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-1.5 h-1.5 rounded-full bg-green-500 mt-2"></div>
+                        <div class="flex-1">
+                            <div class="text-sm text-slate-900 mb-1">Use case gallery</div>
+                            <div class="text-xs text-slate-500">Real customer stories with measurable outcomes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 p-6">
+                <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    What's Not Working
+                </h2>
+                <div class="space-y-3">
+                    <div class="flex items-start gap-3 pb-3 border-b border-slate-100">
+                        <div class="w-1.5 h-1.5 rounded-full bg-red-500 mt-2"></div>
+                        <div class="flex-1">
+                            <div class="text-sm text-slate-900 mb-1">Security documentation</div>
+                            <div class="text-xs text-slate-500">Missing migration guides and incomplete permission model</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 pb-3 border-b border-slate-100">
+                        <div class="w-1.5 h-1.5 rounded-full bg-red-500 mt-2"></div>
+                        <div class="flex-1">
+                            <div class="text-sm text-slate-900 mb-1">Pricing pages</div>
+                            <div class="text-xs text-slate-500">Model description is unclear, causing support tickets</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 pb-3 border-b border-slate-100">
+                        <div class="w-1.5 h-1.5 rounded-full bg-red-500 mt-2"></div>
+                        <div class="flex-1">
+                            <div class="text-sm text-slate-900 mb-1">Integration guides</div>
+                            <div class="text-xs text-slate-500">Outdated steps referencing old UI and deprecated endpoints</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-1.5 h-1.5 rounded-full bg-red-500 mt-2"></div>
+                        <div class="flex-1">
+                            <div class="text-sm text-slate-900 mb-1">Terminology consistency</div>
+                            <div class="text-xs text-slate-500">Same concepts described differently across product areas</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Content Structure -->
+        <section class="bg-white rounded-xl border border-slate-200 p-6">
+            <h2 class="text-lg font-semibold text-slate-900 mb-4">Content Structure</h2>
+            <div class="space-y-2" id="structureTree">
+                <!-- Structure will be rendered here by JavaScript -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Detail Drawer -->
+    <div id="detailDrawer" class="fixed inset-y-0 right-0 w-full md:w-[480px] bg-white border-l border-slate-200 shadow-2xl drawer-enter z-50 overflow-y-auto hidden">
+        <div class="sticky top-0 bg-white border-b border-slate-200 p-6 z-10">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-slate-900" id="drawerTitle"></h3>
+                    <div class="flex items-center gap-2 mt-2">
+                        <span id="drawerSeverity" class="px-2 py-1 text-xs rounded-full"></span>
+                        <span id="drawerStatus" class="px-2 py-1 text-xs rounded-full"></span>
+                    </div>
+                </div>
+                <button onclick="closeDrawer()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="text-xs text-slate-500" id="drawerActivity"></div>
+        </div>
+
+        <div class="p-6 space-y-6">
+
+            <div>
+                <h4 class="text-sm font-medium text-slate-900 mb-2">Why this was flagged</h4>
+                <p class="text-sm text-slate-600 leading-relaxed" id="drawerReason"></p>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-medium text-slate-900 mb-2">Affected area</h4>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-700" id="drawerArea"></div>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-medium text-slate-900 mb-2">Example</h4>
+                <div class="bg-slate-50 rounded-lg p-4 text-sm text-slate-700 font-mono border border-slate-200" id="drawerExample"></div>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-medium text-slate-900 mb-2">Suggested fix</h4>
+                <textarea id="drawerFix" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows="6"></textarea>
+            </div>
+
+            <div class="flex gap-3 pt-4 border-t border-slate-200">
+                <button onclick="copyDrawerFix()" class="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors">
+                    Copy Fix
+                </button>
+                <button onclick="openAutoFixModal()" class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                    Auto-Fix
+                </button>
+            </div>
+
+            <div class="pt-4 border-t border-slate-200">
+                <button class="text-sm text-slate-500 hover:text-slate-700">Mark as resolved</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Auto-Fix Modal -->
+    <div id="autoFixModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div class="flex items-start gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-1">Apply Automatic Fix</h3>
+                    <p class="text-sm text-slate-600">This will update your content. You can always undo this change later.</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-lg p-4 mb-4">
+                <p class="text-sm text-slate-700" id="modalIssueTitle"></p>
+            </div>
+
+            <div class="flex items-start gap-3 mb-6">
+                <input type="checkbox" id="confirmCheckbox" class="w-4 h-4 mt-0.5 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                <label for="confirmCheckbox" class="text-sm text-slate-700">I understand this will update content</label>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeAutoFixModal()" class="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmAutoFix" onclick="applyAutoFix()" disabled class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Apply Fix
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-lg shadow-lg hidden z-50">
+        <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="text-sm font-medium" id="toastMessage">Copied to clipboard</span>
+        </div>
+    </div>
+
+    <!-- Overlay for drawer -->
+    <div id="drawerOverlay" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 hidden" onclick="closeDrawer()"></div>
+
+    <script>
+        // Sample data
+        const issuesData = [
+            {
+                id: 1,
+                title: "Incomplete permission model documentation",
+                severity: "High",
+                area: "Security Docs",
+                description: "Users cannot find how to set up role-based permissions",
+                status: "New",
+                activity: "Flagged 2 days ago",
+                reason: "The permissions documentation is missing critical information about role hierarchy, inheritance rules, and custom permission creation. Users are opening support tickets because they cannot implement security policies.",
+                example: "Current: \"Set permissions in the admin panel.\"\n\nContext missing: What permissions exist? How do roles work? Can you create custom ones?",
+                fix: "Add a dedicated 'Permission Model' page that covers:\n\n1. Available permission types (read, write, admin, custom)\n2. Role hierarchy and inheritance rules\n3. How to create custom permissions\n4. Common permission patterns\n5. Security best practices\n\nInclude a permissions matrix table and code examples."
+            },
+            {
+                id: 2,
+                title: "Missing authentication migration guide",
+                severity: "High",
+                area: "Security Docs",
+                description: "No guidance for customers moving from legacy auth to new system",
+                status: "In Review",
+                activity: "Flagged 5 days ago",
+                reason: "We launched a new authentication system 3 months ago but never created migration documentation. Existing customers are stuck on the old system and creating support tickets asking for help.",
+                example: "Legacy auth uses API keys. New system uses OAuth 2.0 with refresh tokens. No transition guide exists.",
+                fix: "Create a step-by-step migration guide:\n\n1. Why migrate (benefits of new system)\n2. Before you start (prerequisites)\n3. Migration steps with code examples\n4. How to test the new setup\n5. Rolling back if needed\n6. FAQ and troubleshooting\n\nInclude timeline estimates and a checklist."
+            },
+            {
+                id: 3,
+                title: "Unclear pricing model",
+                severity: "Medium",
+                area: "Pricing Page",
+                description: "Customers confused about how usage is calculated and billed",
+                status: "New",
+                activity: "Flagged 1 day ago",
+                reason: "The pricing page uses vague language like 'usage-based pricing' without explaining what counts as usage. Support is getting 15-20 tickets per week asking for clarification before purchase.",
+                example: "Current: \"Pay only for what you use.\"\n\nMissing: What is a billable event? How is it measured? Are there minimums?",
+                fix: "Rewrite pricing page with specifics:\n\n1. Define exactly what counts as usage (API calls, storage, etc.)\n2. Show calculation examples with real numbers\n3. Add a pricing calculator\n4. Explain billing cycles and when charges occur\n5. Include overage policies\n\nUse a simple table to compare plans clearly."
+            },
+            {
+                id: 4,
+                title: "Outdated integration steps",
+                severity: "High",
+                area: "Integration Guides",
+                description: "Screenshots and instructions reference old UI that no longer exists",
+                status: "Fixed",
+                activity: "Flagged 12 days ago, fixed 1 day ago",
+                reason: "The Slack integration guide was written 18 months ago. The screenshots show the old Slack app configuration UI. The API endpoints referenced in code examples have been deprecated.",
+                example: "Guide says: \"Click 'Add Bot' in the left sidebar\"\n\nActual UI: That button was moved to Settings > Integrations in Nov 2024",
+                fix: "Full update required:\n\n1. Retake all screenshots using current Slack UI\n2. Update code examples to use new API endpoints\n3. Add version note at top (Last updated: Jan 2026)\n4. Test every step in a fresh Slack workspace\n5. Add video walkthrough as supplement"
+            },
+            {
+                id: 5,
+                title: "Conflicting terminology across pages",
+                severity: "Medium",
+                area: "Product Docs",
+                description: "Same feature called different names in different sections",
+                status: "New",
+                activity: "Flagged 3 days ago",
+                reason: "The content team identified 8 different terms being used for the same feature across docs, marketing pages, and UI. This includes 'workspace', 'project', 'environment', and 'organization' used interchangeably.",
+                example: "Docs say 'workspace', UI says 'project', marketing says 'environment', API says 'org'",
+                fix: "Standardization project:\n\n1. Pick one canonical term (recommend 'workspace')\n2. Create glossary defining all terms\n3. Find and replace across all content\n4. Update UI text to match\n5. Add glossary link to header\n\nEstimated 47 pages need updates."
+            },
+            {
+                id: 6,
+                title: "Missing error handling documentation",
+                severity: "Low",
+                area: "API Docs",
+                description: "Error codes listed but not explained",
+                status: "New",
+                activity: "Flagged 4 days ago",
+                reason: "The API reference lists HTTP error codes (400, 401, 403, etc.) but does not explain what triggers each one, what the error response looks like, or how to fix common issues.",
+                example: "Current: \"401 Unauthorized\"\n\nNeeded: When this happens, what to check, how to fix it",
+                fix: "Add error handling section:\n\n1. Table of all error codes with descriptions\n2. Sample error response JSON for each\n3. Common causes and solutions\n4. How to handle errors in your code\n5. Retry policies and rate limits"
+            },
+            {
+                id: 7,
+                title: "No mobile integration examples",
+                severity: "Medium",
+                area: "Integration Guides",
+                description: "All code examples assume web environment",
+                status: "In Review",
+                activity: "Flagged 8 days ago",
+                reason: "Integration guides only show JavaScript examples for web browsers. Mobile developers using iOS and Android cannot find Swift or Kotlin examples. 40% of our API usage is from mobile apps.",
+                example: "Current: Only JavaScript fetch() examples\n\nNeeded: Swift URLSession and Kotlin Retrofit examples",
+                fix: "Add mobile integration sections:\n\n1. iOS (Swift) integration guide\n2. Android (Kotlin) integration guide\n3. React Native considerations\n4. Mobile-specific auth flows\n5. Handling offline scenarios\n\nInclude working sample apps on GitHub."
+            },
+            {
+                id: 8,
+                title: "Accessibility features not documented",
+                severity: "Low",
+                area: "Product Docs",
+                description: "Built-in accessibility features exist but are not mentioned anywhere",
+                status: "New",
+                activity: "Flagged 1 day ago",
+                reason: "Product team added keyboard shortcuts, screen reader support, and high contrast mode last quarter. No one on content team was notified. Features exist but are invisible to users who need them.",
+                example: "Features exist: Keyboard nav, ARIA labels, focus indicators, high contrast\n\nDocumentation: None",
+                fix: "Create accessibility documentation:\n\n1. Keyboard shortcuts reference\n2. Screen reader compatibility notes\n3. How to enable high contrast mode\n4. WCAG compliance statement\n5. How to report accessibility issues\n\nAdd link in footer and settings page."
+            }
+        ];
+
+        const structureData = [
+            {
+                id: 's1',
+                title: 'Getting Started',
+                count: 12,
+                children: [
+                    { id: 's1-1', title: 'Quick Start', count: 3 },
+                    { id: 's1-2', title: 'Installation', count: 5 },
+                    { id: 's1-3', title: 'Your First Project', count: 4 }
+                ],
+                issues: 0
+            },
+            {
+                id: 's2',
+                title: 'Product Documentation',
+                count: 47,
+                children: [
+                    { id: 's2-1', title: 'Core Features', count: 18 },
+                    { id: 's2-2', title: 'Advanced Usage', count: 14 },
+                    { id: 's2-3', title: 'Integrations', count: 15, issues: 2 }
+                ],
+                issues: 3
+            },
+            {
+                id: 's3',
+                title: 'Security & Permissions',
+                count: 8,
+                children: [
+                    { id: 's3-1', title: 'Authentication', count: 3, issues: 1 },
+                    { id: 's3-2', title: 'Authorization', count: 2, issues: 1 },
+                    { id: 's3-3', title: 'Best Practices', count: 3 }
+                ],
+                issues: 2
+            },
+            {
+                id: 's4',
+                title: 'API Reference',
+                count: 34,
+                children: [
+                    { id: 's4-1', title: 'REST API', count: 22 },
+                    { id: 's4-2', title: 'GraphQL API', count: 8 },
+                    { id: 's4-3', title: 'Webhooks', count: 4 }
+                ],
+                issues: 1
+            },
+            {
+                id: 's5',
+                title: 'Pricing & Billing',
+                count: 6,
+                children: [
+                    { id: 's5-1', title: 'Plans & Pricing', count: 2, issues: 1 },
+                    { id: 's5-2', title: 'Billing FAQ', count: 4 }
+                ],
+                issues: 1
+            }
+        ];
+
+        let currentIssue = null;
+
+        // Render issues
+        function renderIssues() {
+            const container = document.getElementById('issuesList');
+            container.innerHTML = issuesData.map(issue => {
+                const severityColors = {
+                    'High': 'bg-red-100 text-red-700',
+                    'Medium': 'bg-amber-100 text-amber-700',
+                    'Low': 'bg-blue-100 text-blue-700'
+                };
+                const statusColors = {
+                    'New': 'bg-slate-100 text-slate-700',
+                    'In Review': 'bg-purple-100 text-purple-700',
+                    'Fixed': 'bg-green-100 text-green-700',
+                    'Ignored': 'bg-slate-100 text-slate-400'
+                };
+
+                return `
+                    <div class="flex items-center justify-between p-4 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors cursor-pointer" onclick="openIssue(${issue.id})">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span class="px-2 py-0.5 text-xs rounded-full ${severityColors[issue.severity]}">${issue.severity}</span>
+                                <span class="px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-600">${issue.area}</span>
+                                <span class="px-2 py-0.5 text-xs rounded-full ${statusColors[issue.status]}">${issue.status}</span>
+                            </div>
+                            <h3 class="text-sm font-medium text-slate-900 mb-1">${issue.title}</h3>
+                            <p class="text-xs text-slate-500">${issue.description}</p>
+                        </div>
+                        <div class="flex items-center gap-2 ml-4">
+                            <button onclick="event.stopPropagation(); copyFix(${issue.id})" class="px-3 py-1.5 text-xs bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors">
+                                Copy Fix
+                            </button>
+                            <button onclick="event.stopPropagation(); openAutoFixModalForIssue(${issue.id})" class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                Auto-Fix
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render structure
+        function renderStructure() {
+            const container = document.getElementById('structureTree');
+            container.innerHTML = structureData.map(section => `
+                <div class="structure-item border border-slate-200 rounded-lg">
+                    <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50" onclick="toggleSection('${section.id}')">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-slate-400 chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-slate-900">${section.title}</span>
+                            <span class="text-xs text-slate-500">${section.count} pages</span>
+                            ${section.issues ? `<span class="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-700">${section.issues} issues</span>` : ''}
+                        </div>
+                    </div>
+                    <div id="section-${section.id}" class="hidden border-t border-slate-200 bg-slate-50 p-4 pl-12 space-y-2">
+                        ${section.children.map(child => `
+                            <div class="flex items-center justify-between py-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-slate-700">${child.title}</span>
+                                    <span class="text-xs text-slate-400">${child.count} pages</span>
+                                    ${child.issues ? `<span class="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-700">${child.issues}</span>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleSection(id) {
+            const section = document.querySelector(`#section-${id}`);
+            const parent = section.closest('.structure-item');
+
+            if (section.classList.contains('hidden')) {
+                section.classList.remove('hidden');
+                parent.classList.add('expanded');
+            } else {
+                section.classList.add('hidden');
+                parent.classList.remove('expanded');
+            }
+        }
+
+        function openIssue(id) {
+            const issue = issuesData.find(i => i.id === id);
+            if (!issue) return;
+
+            currentIssue = issue;
+
+            const severityColors = {
+                'High': 'bg-red-100 text-red-700',
+                'Medium': 'bg-amber-100 text-amber-700',
+                'Low': 'bg-blue-100 text-blue-700'
+            };
+            const statusColors = {
+                'New': 'bg-slate-100 text-slate-700',
+                'In Review': 'bg-purple-100 text-purple-700',
+                'Fixed': 'bg-green-100 text-green-700',
+                'Ignored': 'bg-slate-100 text-slate-400'
+            };
+
+            document.getElementById('drawerTitle').textContent = issue.title;
+            document.getElementById('drawerSeverity').textContent = issue.severity;
+            document.getElementById('drawerSeverity').className = `px-2 py-1 text-xs rounded-full ${severityColors[issue.severity]}`;
+            document.getElementById('drawerStatus').textContent = issue.status;
+            document.getElementById('drawerStatus').className = `px-2 py-1 text-xs rounded-full ${statusColors[issue.status]}`;
+            document.getElementById('drawerActivity').textContent = issue.activity;
+            document.getElementById('drawerReason').textContent = issue.reason;
+            document.getElementById('drawerArea').textContent = issue.area;
+            document.getElementById('drawerExample').textContent = issue.example;
+            document.getElementById('drawerFix').value = issue.fix;
+
+            const drawer = document.getElementById('detailDrawer');
+            const overlay = document.getElementById('drawerOverlay');
+
+            drawer.classList.remove('hidden');
+            overlay.classList.remove('hidden');
+
+            setTimeout(() => {
+                drawer.classList.add('drawer-active');
+            }, 10);
+        }
+
+        function closeDrawer() {
+            const drawer = document.getElementById('detailDrawer');
+            const overlay = document.getElementById('drawerOverlay');
+
+            drawer.classList.remove('drawer-active');
+
+            setTimeout(() => {
+                drawer.classList.add('hidden');
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        function copyFix(id) {
+            const issue = issuesData.find(i => i.id === id);
+            if (!issue) return;
+
+            navigator.clipboard.writeText(issue.fix).then(() => {
+                showToast('Copied to clipboard');
+            });
+        }
+
+        function copyDrawerFix() {
+            const fix = document.getElementById('drawerFix').value;
+            navigator.clipboard.writeText(fix).then(() => {
+                showToast('Copied to clipboard');
+            });
+        }
+
+        function openAutoFixModalForIssue(id) {
+            const issue = issuesData.find(i => i.id === id);
+            if (!issue) return;
+
+            currentIssue = issue;
+            document.getElementById('modalIssueTitle').textContent = issue.title;
+            document.getElementById('autoFixModal').classList.remove('hidden');
+            document.getElementById('confirmCheckbox').checked = false;
+            document.getElementById('confirmAutoFix').disabled = true;
+        }
+
+        function openAutoFixModal() {
+            if (!currentIssue) return;
+            document.getElementById('modalIssueTitle').textContent = currentIssue.title;
+            document.getElementById('autoFixModal').classList.remove('hidden');
+            document.getElementById('confirmCheckbox').checked = false;
+            document.getElementById('confirmAutoFix').disabled = true;
+        }
+
+        function closeAutoFixModal() {
+            document.getElementById('autoFixModal').classList.add('hidden');
+        }
+
+        function applyAutoFix() {
+            closeAutoFixModal();
+            closeDrawer();
+            showToast('Fix applied successfully');
+
+            // Update issue status in data
+            if (currentIssue) {
+                currentIssue.status = 'Fixed';
+                renderIssues();
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            toast.classList.add('toast-show');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('toast-show');
+            }, 3000);
+        }
+
+        // Enable confirm button when checkbox is checked
+        document.getElementById('confirmCheckbox').addEventListener('change', function() {
+            document.getElementById('confirmAutoFix').disabled = !this.checked;
+        });
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAutoFixModal();
+                closeDrawer();
+            }
+        });
+
+        // Initialize
+        renderIssues();
+        renderStructure();
+    </script>
+
+</body>
+</html>
